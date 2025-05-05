@@ -1,0 +1,7 @@
+{
+  "name": "juego-guardianes-galaxia",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
