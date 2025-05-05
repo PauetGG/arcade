@@ -13,7 +13,6 @@ export class MenuPage implements OnInit {
   constructor(private router: Router) {}
 
   ngOnInit() {
-    // Detectar si hay una partida guardada
     this.partidaEnCurso = localStorage.getItem('partidaEnCurso') === 'true';
   }
 
@@ -23,7 +22,14 @@ export class MenuPage implements OnInit {
       if (!confirmar) return;
     }
   
-    localStorage.setItem('partidaEnCurso', 'true');
+    const nombre = prompt('¿Cuál es tu nombre?');
+    if (!nombre || nombre.trim() === '') {
+      alert('Debes introducir un nombre para empezar.');
+      return;
+    }
+  
+    localStorage.setItem('nombreJugador', nombre.trim());
+    localStorage.removeItem('partidaEnCurso'); 
     this.router.navigate(['/game']);
   }
 
@@ -32,7 +38,7 @@ export class MenuPage implements OnInit {
   }
 
   verRanking() {
-    this.router.navigate(['/ranking']); // Asegúrate de tener esta ruta creada
+    this.router.navigate(['/ranking']); 
   }
 
   salir() {

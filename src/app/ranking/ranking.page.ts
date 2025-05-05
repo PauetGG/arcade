@@ -7,17 +7,15 @@ import { Component, OnInit } from '@angular/core';
   standalone: false
 })
 export class RankingPage implements OnInit {
-  partidas: { puntuacion: number; fecha: string; nave: string }[] = [];
+  partidas: { id: number; nombre: string; puntos: number; fecha: string }[] = [];
 
   constructor() {}
 
   ngOnInit() {
-    const data = localStorage.getItem('ranking');
+    const data = localStorage.getItem('puntuaciones');
     if (data) {
       this.partidas = JSON.parse(data);
-
-      // Ordenar de mayor a menor puntuación
-      this.partidas.sort((a, b) => b.puntuacion - a.puntuacion);
+      this.partidas.sort((a, b) => b.puntos - a.puntos);
     }
   }
 }

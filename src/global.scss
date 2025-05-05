@@ -44,7 +44,9 @@ ion-content {
   
   ion-content > * {
     width: 100%;
-    max-width: 700px;
+    max-width: 600px;
     margin: 0 auto;
   }
-  
+  ion-content {
+    --background: url('/assets/images/background.png') no-repeat center center / contain !important;
+  }

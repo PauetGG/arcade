@@ -1,6 +1,7 @@
 import { Component, AfterViewInit } from '@angular/core';
 import Phaser from 'phaser';
 import { GameScene } from './game-scene';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-game',
@@ -11,12 +12,14 @@ import { GameScene } from './game-scene';
 export class GamePage implements AfterViewInit {
   phaserGame!: Phaser.Game;
 
-  constructor() {}
+  constructor(private router: Router) {}
 
   ngAfterViewInit() {
+    const gameScene = new GameScene(this.router);
+
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
-      width: 700,
+      width: 650,
       height: window.innerHeight,
       physics: {
         default: 'arcade',
@@ -24,7 +27,7 @@ export class GamePage implements AfterViewInit {
           debug: false,
         },
       },
-      scene: [GameScene],
+      scene: [gameScene], 
       parent: 'game-container',
     };
 
