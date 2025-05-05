@@ -1,0 +1,19 @@
+<ion-content class="ion-padding">
+  <div class="menu-container">
+    <ion-button expand="block" (click)="nuevaPartida()">
+      Nueva Partida
+    </ion-button>
+
+    <ion-button *ngIf="partidaEnCurso" expand="block" (click)="continuarPartida()">
+      Continuar Partida
+    </ion-button>
+
+    <ion-button expand="block" (click)="verRanking()">
+      Ranking
+    </ion-button>
+
+    <ion-button expand="block" color="danger" (click)="salir()">
+      Salir
+    </ion-button>
+  </div>
+</ion-content>

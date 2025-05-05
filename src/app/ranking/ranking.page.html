@@ -1,0 +1,15 @@
+<ion-content class="ion-padding">
+  <ion-list *ngIf="partidas.length > 0; else sinDatos">
+    <ion-item *ngFor="let partida of partidas; index as i">
+      <ion-label>
+        <h2>#{{ i + 1 }} - {{ partida.puntuacion }} puntos</h2>
+        <p>Fecha: {{ partida.fecha | date:'short' }}</p>
+        <p>Nave usada: {{ partida.nave }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ng-template #sinDatos>
+    <ion-text color="medium">Aún no hay partidas registradas.</ion-text>
+  </ng-template>
+</ion-content>
