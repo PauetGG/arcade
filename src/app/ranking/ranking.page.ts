@@ -16,6 +16,7 @@ export class RankingPage implements OnInit {
     if (data) {
       this.partidas = JSON.parse(data);
       this.partidas.sort((a, b) => b.puntos - a.puntos);
+      this.partidas = this.partidas.slice(0, 5); 
     }
   }
 }

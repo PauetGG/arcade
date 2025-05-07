@@ -8,6 +8,14 @@ export class GameScene extends Phaser.Scene {
   asteroides!: Phaser.Physics.Arcade.Group;
   puntos: number = 0;
   textoPuntuacion!: Phaser.GameObjects.Text;
+  eventoAsteroides!: Phaser.Time.TimerEvent;
+
+  nivelDificultad: number = 1;
+  velocidadNaveBase: number = 300;
+  partidaTerminada: boolean = false;
+
+  delayAsteroides: number = 1500;
+  reduccionDelay: number = 100;
 
   constructor(private router: Router) {
     super({ key: 'GameScene' });
@@ -18,7 +26,7 @@ export class GameScene extends Phaser.Scene {
     this.load.image('bala', 'assets/images/bala.png');
     this.load.image('asteroide', 'assets/images/asteroide.png');
     this.load.image('pause', 'assets/images/pause.png');
-    this.load.image('bg', 'assets/images/background.png')
+    this.load.image('bg', 'assets/images/background.png');
   }
 
   create() {
@@ -31,10 +39,11 @@ export class GameScene extends Phaser.Scene {
       estado = JSON.parse(estadoGuardado);
       this.puntos = estado.puntos || 0;
     }
+
     this.add.image(0, 0, 'bg')
-    .setOrigin(0)
-    .setDisplaySize(this.sys.game.canvas.width, this.sys.game.canvas.height)
-    .setDepth(-1);
+      .setOrigin(0)
+      .setDisplaySize(width, height)
+      .setDepth(-1);
 
     const naveX = estado?.nave?.x ?? width / 2;
     const naveY = estado?.nave?.y ?? height - 100;
@@ -44,7 +53,6 @@ export class GameScene extends Phaser.Scene {
     this.nave.displayHeight = 100;
 
     this.cursors = this.input.keyboard!.createCursorKeys();
-
     this.balas = this.physics.add.group();
     this.asteroides = this.physics.add.group();
 
@@ -73,7 +81,7 @@ export class GameScene extends Phaser.Scene {
       });
     }
 
-    localStorage.removeItem('estadoPartida'); 
+    localStorage.removeItem('estadoPartida');
 
     const pauseButton = this.add.image(20, 20, 'pause')
       .setOrigin(0)
@@ -87,15 +95,15 @@ export class GameScene extends Phaser.Scene {
       this.dispararBala();
     });
 
+    this.crearEventoAsteroides();
+
     this.time.addEvent({
-      delay: 1500,
+      delay: 10000,
       callback: () => {
-        const x = Phaser.Math.Between(50, width - 50);
-        const asteroide = this.asteroides.create(x, -50, 'asteroide');
-        asteroide.setVelocityY(Phaser.Math.Between(100, 200));
-        asteroide.displayWidth = 50;
-        asteroide.displayHeight = 50;
-        asteroide.setCollideWorldBounds(false);
+        this.nivelDificultad++;
+        this.delayAsteroides = Math.max(300, this.delayAsteroides - this.reduccionDelay);
+        this.eventoAsteroides.remove(false);
+        this.crearEventoAsteroides();
       },
       loop: true
     });
@@ -120,6 +128,23 @@ export class GameScene extends Phaser.Scene {
       undefined,
       this
     );
+  }
+
+  crearEventoAsteroides() {
+    const width = this.sys.game.canvas.width;
+    this.eventoAsteroides = this.time.addEvent({
+      delay: this.delayAsteroides,
+      callback: () => {
+        const x = Phaser.Math.Between(50, width - 50);
+        const velocidad = Phaser.Math.Between(100, 200) + this.nivelDificultad * 20;
+        const asteroide = this.asteroides.create(x, -50, 'asteroide');
+        asteroide.setVelocityY(velocidad);
+        asteroide.displayWidth = 50;
+        asteroide.displayHeight = 50;
+        asteroide.setCollideWorldBounds(false);
+      },
+      loop: true
+    });
   }
 
   dispararBala() {
@@ -148,6 +173,7 @@ export class GameScene extends Phaser.Scene {
 
   pausarJuego() {
     this.physics.pause();
+    this.eventoAsteroides.paused = true;
 
     const width = this.sys.game.canvas.width;
     const height = this.sys.game.canvas.height;
@@ -184,6 +210,7 @@ export class GameScene extends Phaser.Scene {
       texto.destroy();
       continuar.destroy();
       volverMenu.destroy();
+      this.eventoAsteroides.paused = false;
       this.physics.resume();
     });
 
@@ -203,13 +230,17 @@ export class GameScene extends Phaser.Scene {
       localStorage.setItem('partidaEnCurso', 'true');
 
       this.router.navigateByUrl('/menu').then(() => {
-        location.reload(); 
+        location.reload();
       });
     });
   }
 
   gameOver() {
+    if (this.partidaTerminada) return;
+    this.partidaTerminada = true;
+
     this.physics.pause();
+    this.eventoAsteroides.paused = true;
     this.nave.setTint(0xff0000);
 
     const width = this.sys.game.canvas.width;
@@ -250,6 +281,10 @@ export class GameScene extends Phaser.Scene {
 
     reintentar.on('pointerdown', () => {
       this.guardarPuntuacion();
+      this.puntos = 0;
+      this.nivelDificultad = 1;
+      this.delayAsteroides = 1500;
+      this.partidaTerminada = false;
       this.scene.restart();
     });
 
@@ -257,16 +292,18 @@ export class GameScene extends Phaser.Scene {
       localStorage.removeItem('partidaEnCurso');
       this.guardarPuntuacion();
       this.router.navigateByUrl('/menu').then(() => {
-        location.reload(); 
+        location.reload();
       });
     });
   }
 
   override update() {
-    if (this.cursors.left?.isDown) {
-      this.nave.setVelocityX(-300);
-    } else if (this.cursors.right?.isDown) {
-      this.nave.setVelocityX(300);
+    const velocidad = this.velocidadNaveBase + this.nivelDificultad * 20;
+
+    if (this.cursors?.left?.isDown) {
+      this.nave.setVelocityX(-velocidad);
+    } else if (this.cursors?.right?.isDown) {
+      this.nave.setVelocityX(velocidad);
     } else {
       this.nave.setVelocityX(0);
     }
@@ -279,8 +316,9 @@ export class GameScene extends Phaser.Scene {
 
     this.asteroides.getChildren().forEach((asteroide) => {
       if ((asteroide as Phaser.Physics.Arcade.Sprite).y > this.sys.game.canvas.height + 50) {
-        asteroide.destroy();
+        this.gameOver();
       }
     });
   }
 }
+
